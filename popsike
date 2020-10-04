@@ -1,0 +1,47 @@
+from requests import get
+from bs4 import BeautifulSoup
+import pandas as pd
+import numpy as np
+
+headers = {"Accept-Language": "en-US, en;q=0.5"}
+url = "https://www.popsike.com/php/quicksearch.php?searchtext=metal+-signed+-promo+-beatles+-zeppelin+-acetate+-test+-sinatra&sortord=aprice&pagenum=1&incldescr=1&sprice=100&eprice=&endfrom=2020&endthru=2020&bidsfrom=&bidsthru=&layout=&flabel=&fcatno="
+results = requests.get(url, headers=headers)
+soup = BeautifulSoup(results.text, "html5lib")
+
+
+title = []
+date = []
+URL = []
+price = []
+
+record_div = soup.find_all('div', class_='col-md-7 add-desc-box')
+
+
+for container in record_div:
+
+    description = container.a.text
+    title.append(description)
+
+    link = container.find('a')
+    URL.append(link.get('href'))
+
+    purchase_date = container.select('span.date > b')[0].text.strip(' \t\n\r')
+    date.append(purchase_date)
+
+    purchase_price = container.select('h2.item-price > b')
+    price.append(purchase_price)
+   
+
+test_data = pd.DataFrame({
+'record_description': title,
+'link': URL,
+'p_date': date,
+'purchase_amount': price
+})
+
+test_data['link'] = test_data['link'].str.replace('../','https://www.popsike.com/',1)
+
+
+print(test_data)
+
+test_data.to_csv('popaarontwo.csv')
